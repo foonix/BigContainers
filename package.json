@@ -1,0 +1,17 @@
+{
+  "name": "com.foonix",
+  "displayName": "BigContainers",
+  "version": "0.0.1",
+  "unity": "2019.2",
+  "description": "Native containers larger than 2GB, and fast, balanced KD-Tree builder",
+  "keywords": [
+    "knn",
+    "unity"
+  ],
+  "category": "Unity",
+  "dependencies": {
+    "com.unity.burst": "1.1.2",
+    "com.unity.collections": "0.1.1-preview",
+    "com.unity.mathematics": "1.1.0"
+  }
+}
