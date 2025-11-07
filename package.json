@@ -2,7 +2,7 @@
   "name": "com.foonix",
   "displayName": "BigContainers",
   "version": "0.0.1",
-  "unity": "2019.2",
+  "unity": "6000.0",
   "description": "Native containers larger than 2GB, and fast, balanced KD-Tree builder",
   "keywords": [
     "knn",
