@@ -1,5 +1,9 @@
 namespace BigContainers.Runtime
 {
+    /// <summary>
+    /// A comparer used for sorting and searching a k-d tree.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IKdComparer<T> where T : IKdNode
     {
         /// <summary>

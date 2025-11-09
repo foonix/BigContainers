@@ -1,6 +1,7 @@
 using BigContainers.Runtime.Helpers;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Mathematics;
 
 namespace BigContainers.Runtime
 {
@@ -25,6 +26,7 @@ namespace BigContainers.Runtime
             k = comparer.Dimensions;
         }
 
+        #region tree building
         public void BuildTree()
         {
             // allocate tags
@@ -118,5 +120,64 @@ namespace BigContainers.Runtime
                 nodes[j] = tempNode;
             }
         }
+        #endregion
+
+        #region search
+        /// <summary>
+        /// Traverse the tree using a given query to process nodes.
+        /// </summary>
+        /// <typeparam name="TQuery"></typeparam>
+        /// <param name="query"></param>
+        // See: A Stack-Free Traversal Algorithm for Left-Balanced k-d Trees, Ingo Wald
+        public void Traverse<TQuery>(ref TQuery query) where TQuery : unmanaged, IKdQuery<TNode>
+        {
+            int curr = 0;
+            int prev = -1;
+            float maxSearchRadius = query.GetCurrentSearchRadius();
+            while (true)
+            {
+                int parent = (curr + 1) / 2 - 1;
+                if (curr >= numNodes)
+                {
+                    // We reached a child that does not exist; go back to parent
+                    prev = curr; curr = parent; continue;
+                }
+                bool from_parent = (prev < curr);
+                if (from_parent)
+                {
+                    query.ProcessNode(nodes[curr]);
+                    // Check if processing current node has led to
+                    // a smaller search radius:
+                    maxSearchRadius = query.GetCurrentSearchRadius();
+                }
+
+                // Compute close child and far child:
+                int splitDim = BinaryTree.LevelOf(curr) % comparer.Dimensions;
+                float splitPos = nodes[curr].GetCoordinate(splitDim);
+                float signedDist = query.QueryPoint.GetCoordinate(splitDim) - splitPos;
+                int closeSide = (signedDist > 0f) ? 1 : 0;
+                int closeChild = 2 * curr + 1 + closeSide;
+                int farChild = 2 * curr + 2 - closeSide;
+                bool farInRange = math.abs(signedDist) <= maxSearchRadius;
+
+                // Compute next node to step to:
+                int next;
+                if (from_parent)
+                    next = closeChild;
+                else if (prev == closeChild)
+                    next = (farInRange ? farChild : parent);
+                else
+                    next = parent;
+                if (next == -1)
+                    // The only way this can happen is if the entire tree under
+                    // node number 0 (i.e., the entire tree) is done traversing,
+                    // and the root node tries to step to its parent ... in
+                    // which case we have traversed the entire tree and are done.
+                    return;
+                // aaaand ... do the step
+                prev = curr; curr = next;
+            }
+        }
+        #endregion
     }
 }
