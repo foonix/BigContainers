@@ -13,7 +13,7 @@ namespace BigContainers.Runtime
         NativeArray<TNode> nodes;
         //int dimensions;
         readonly TComparer comparer;
-        readonly int numNodes => nodes.Length;
+        readonly int NumNodes => nodes.Length;
         readonly int numLevels;
         readonly int k;
 
@@ -34,14 +34,14 @@ namespace BigContainers.Runtime
             int deepestLevel = numLevels - 1;
 
             // initial sort by first (x) axis
-            TaggedQuicksort(tags, 0, 0, numNodes - 1);
+            TaggedQuicksort(tags, 0, 0, NumNodes - 1);
             for (int step = 0; step < deepestLevel; step++)
             {
                 int numSettled = new FullBinaryTreeOf(step).NumNodes();
 
                 // update tags
                 UpdateTags(tags, step);
-                TaggedQuicksort(tags, (step + 1) % k, numSettled, numNodes - 1);
+                TaggedQuicksort(tags, (step + 1) % k, numSettled, NumNodes - 1);
             }
         }
 
@@ -55,11 +55,11 @@ namespace BigContainers.Runtime
         private readonly void UpdateTags(NativeArray<int> tags, int step /*L*/)
         {
             // note: embarrassingly parallelizable loop.
-            for (int arrayIdx = new FullBinaryTreeOf(step).NumNodes(); arrayIdx < numNodes; arrayIdx++)
+            for (int arrayIdx = new FullBinaryTreeOf(step).NumNodes(); arrayIdx < NumNodes; arrayIdx++)
             {
                 var currentTag = tags[arrayIdx];
 
-                int pivotPos = new ArrayLayoutInStep(step, numNodes).PivotPosOf(currentTag);
+                int pivotPos = new ArrayLayoutInStep(step, NumNodes).PivotPosOf(currentTag);
                 if (arrayIdx < pivotPos)
                     tags[arrayIdx] = BinaryTree.LeftChild(currentTag);
                 else if (arrayIdx > pivotPos)
@@ -137,7 +137,7 @@ namespace BigContainers.Runtime
             while (true)
             {
                 int parent = (curr + 1) / 2 - 1;
-                if (curr >= numNodes)
+                if (curr >= NumNodes)
                 {
                     // We reached a child that does not exist; go back to parent
                     prev = curr; curr = parent; continue;
