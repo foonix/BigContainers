@@ -10,14 +10,14 @@ namespace BigContainers.Runtime
     where TNode : unmanaged, IKdNode
     where TComparer : unmanaged, IKdComparer<TNode>
     {
-        NativeList<TNode> nodes;
+        NativeArray<TNode> nodes;
         //int dimensions;
         readonly TComparer comparer;
         readonly int numNodes => nodes.Length;
         readonly int numLevels;
         readonly int k;
 
-        public BigKdTree(NativeList<TNode> nodes, TComparer comparer)
+        public BigKdTree(NativeArray<TNode> nodes, TComparer comparer)
         {
             this.nodes = nodes;
             this.comparer = comparer;

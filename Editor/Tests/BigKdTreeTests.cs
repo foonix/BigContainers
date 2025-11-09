@@ -39,7 +39,7 @@ namespace BigContainers.Editor.Tests
                 new(25,54),
             };
 
-            var tree = new BigKdTree<Float2Node, Float2Comparer>(testData, new Float2Comparer());
+            var tree = new BigKdTree<Float2Node, Float2Comparer>(testData.AsArray(), new Float2Comparer());
             tree.BuildTree();
 
             for (int i = 0; i < testData.Length; i++)
