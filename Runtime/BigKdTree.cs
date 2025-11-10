@@ -74,26 +74,43 @@ namespace BigContainers.Runtime
 
         private void TaggedQuicksort(NativeArray<int> tags, int dimension, int lo, int hi)
         {
-            //using var stack = new NativeList<int>(10, Allocator.Temp);
-            var size = hi - lo;
-            if (size < 16)
-            {
-                TaggedInsertionSort(tags, lo, hi, dimension);
-                return;
-            }
+            using var stack = new NativeList<(int, int)>(10, Allocator.Temp) { (lo, hi) };
 
-            if (size > 0)
+            while (stack.Length > 0)
             {
-                var partition = TaggedHoarePartition(tags, dimension, lo, hi);
-                TaggedQuicksort(tags, dimension, lo, partition);
-                TaggedQuicksort(tags, dimension, partition + 1, hi);
+                // pop
+                int top = stack.Length - 1;
+
+                (int l, int h) = stack[top];
+                stack.RemoveAt(top);
+
+                var size = h - l;
+                if (size <= 32)
+                {
+                    TaggedInsertionSort(tags, l, h, dimension);
+                    continue;
+                }
+
+                if (size > 0)
+                {
+                    int partition = TaggedHoarePartition(tags, dimension, l, h);
+                    int leftSize = partition - l;
+                    int rightSize = h - partition + 1;
+                    if (leftSize > 1)
+                    {
+                        stack.Add((l, partition));
+                    }
+                    if (rightSize > 1)
+                    {
+                        stack.Add((partition + 1, h));
+                    }
+                }
             }
         }
 
         private int TaggedHoarePartition(NativeArray<int> tags, int dimension, int lo, int hi)
         {
             int chosenPivotIdx = lo / 2 + hi / 2;
-            //int chosenPivotIdx = lo;
             int pivotTagValue = tags[chosenPivotIdx];
             TNode pivotNodeValue = nodes[chosenPivotIdx];
 
