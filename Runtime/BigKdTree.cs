@@ -2,6 +2,7 @@ using BigContainers.Runtime.Helpers;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Profiling;
 
 namespace BigContainers.Runtime
 {
@@ -16,6 +17,8 @@ namespace BigContainers.Runtime
         readonly int NumNodes => nodes.Length;
         readonly int numLevels;
         readonly int k;
+
+        private static readonly ProfilerMarker traverseMarker = new("BigKdTree.Traverse()");
 
         public BigKdTree(NativeArray<TNode> nodes, TComparer comparer)
         {
@@ -72,7 +75,14 @@ namespace BigContainers.Runtime
         private void TaggedQuicksort(NativeArray<int> tags, int dimension, int lo, int hi)
         {
             //using var stack = new NativeList<int>(10, Allocator.Temp);
-            if (lo < hi)
+            var size = hi - lo;
+            if (size < 16)
+            {
+                TaggedInsertionSort(tags, lo, hi, dimension);
+                return;
+            }
+
+            if (size > 0)
             {
                 var partition = TaggedHoarePartition(tags, dimension, lo, hi);
                 TaggedQuicksort(tags, dimension, lo, partition);
@@ -120,6 +130,36 @@ namespace BigContainers.Runtime
                 nodes[j] = tempNode;
             }
         }
+
+        private void TaggedInsertionSort(NativeArray<int> tags, int lo, int hi, int dimension)
+        {
+            var compLocal = comparer;
+            var nodesLocal = nodes;
+
+            for (int i = lo + 1; i <= hi; i++)
+            {
+                int temp_tag = tags[i];
+                TNode temp_node = nodes[i];
+
+                bool GreaterThanTemp(int a)
+                {
+                    return (tags[a] > temp_tag)
+                        || (tags[a] == temp_tag)
+                        && (compLocal.CompareDimension(nodesLocal[a], temp_node, dimension) > 0);
+                }
+
+                int j;
+                for (j = i; j > lo && GreaterThanTemp(j - 1); j--)
+                {
+                    // swap
+                    tags[j] = tags[j - 1];
+                    nodes[j] = nodes[j - 1];
+                }
+
+                tags[j] = temp_tag;
+                nodes[j] = temp_node;
+            }
+        }
         #endregion
 
         #region search
@@ -131,6 +171,7 @@ namespace BigContainers.Runtime
         // See: A Stack-Free Traversal Algorithm for Left-Balanced k-d Trees, Ingo Wald
         public void Traverse<TQuery>(ref TQuery query) where TQuery : unmanaged, IKdQuery<TNode>
         {
+            using var marker = traverseMarker.Auto();
             int curr = 0;
             int prev = -1;
             float maxSearchRadius = query.GetCurrentSearchRadius();
