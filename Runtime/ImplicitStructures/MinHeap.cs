@@ -59,9 +59,8 @@ namespace BigContainers.Runtime.ImplicitStructures
         {
             T extracted = CurrentMin;
 
-            bool reachedTop = false;
             int gap = 0, newgap;
-            while (!reachedTop)
+            while (true)
             {
                 int rightChildIdx = BinaryTree.RightChild(gap);
                 if (rightChildIdx < currentSize)
@@ -90,7 +89,7 @@ namespace BigContainers.Runtime.ImplicitStructures
                 }
                 else
                 {
-                    reachedTop = true;
+                    break;
                 }
             }
 
@@ -109,10 +108,43 @@ namespace BigContainers.Runtime.ImplicitStructures
 
         public T Exchange(T node)
         {
-            // naive exchange
-            var result = Extract();
-            Insert(node);
-            return result;
+            // like Extract() except we have potentially out of order node instead of a gap.
+            T extracted = CurrentMin;
+
+            if (node.CompareTo(extracted) <= 0)
+            {
+                // exchanged is already minimum
+                heap[0] = node;
+                return extracted;
+            }
+
+            int current = 0;
+            while (current < currentSize)
+            {
+                int leftChildIdx = BinaryTree.LeftChild(current);
+                int rightChildIdx = BinaryTree.RightChild(current);
+                var leftChild = heap[leftChildIdx];
+                var rightChild = heap[rightChildIdx];
+                if (leftChildIdx < currentSize && leftChild.CompareTo(node) < 0)
+                {
+                    heap[current] = heap[leftChildIdx];
+                    current = leftChildIdx;
+                }
+                else if (rightChildIdx < currentSize && rightChild.CompareTo(node) < 0)
+                {
+                    heap[current] = heap[rightChildIdx];
+                    current = rightChildIdx;
+                }
+                else
+                {
+                    // no more moves needed.
+                    // assign node and return.
+                    heap[current] = node;
+                    return extracted;
+                }
+            }
+
+            return extracted;
         }
     }
 }
