@@ -56,6 +56,10 @@ namespace BigContainers.Runtime.ImplicitStructures
             heap[current] = node;
         }
 
+        /// <summary>
+        /// Remove the lowest value (CurrentMin) from the heap, and shrink the heap by 1.
+        /// </summary>
+        /// <returns>Returns CurrentMin</returns>
         public TNode Extract()
         {
             TNode extracted = CurrentMin;
@@ -107,13 +111,28 @@ namespace BigContainers.Runtime.ImplicitStructures
             return extracted;
         }
 
-        public TNode Exchange(TNode node)
+        /// <summary>
+        /// Removes minimum node from the heap, placing the provided value into the heap.
+        /// This is more efficient than calling Extract() then Insert().
+        /// </summary>
+        /// <param name="node">A node to add to the heap.</param>
+        /// <returns>The previous CurrentMin</returns>
+        public TNode Exchange(TNode node) => ExchangeAt(0, node);
+
+        /// <summary>
+        /// Exchange the node at i for the given node, and bubble downward.
+        /// Note that this may invalidate the heap property for nodes above it.
+        /// </summary>
+        /// <param name="i">Node index of the location to perform the exchange operation.</param>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        public TNode ExchangeAt(int i, TNode node)
         {
             // like Extract() except we have potentially out of order node instead of a gap.
             TNode extracted = CurrentMin;
 
-            heap[0] = node;
-            BubbleDown(0);
+            heap[i] = node;
+            BubbleDown(i);
 
             return extracted;
         }

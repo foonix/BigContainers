@@ -1,10 +1,11 @@
 using BigContainers.Runtime;
+using BigContainers.Runtime.ImplicitStructures;
 using NUnit.Framework;
 using Unity.Collections;
 
 namespace BigContainers.Editor.Tests
 {
-    public static class BigKdTreeTests
+    public static class KdTreeTests
     {
         [Test]
         public static void SortsExampleTree()
@@ -39,7 +40,7 @@ namespace BigContainers.Editor.Tests
                 new(25,54),
             };
 
-            var tree = new BigKdTree<Float2Node, Float2Comparer>(testData.AsArray(), new Float2Comparer());
+            var tree = new KdTree<Float2Node, Float2Comparer>(testData.AsArray(), new Float2Comparer());
             tree.BuildTree();
 
             for (int i = 0; i < testData.Length; i++)

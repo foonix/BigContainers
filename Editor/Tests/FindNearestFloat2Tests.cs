@@ -1,4 +1,5 @@
 using BigContainers.Runtime;
+using BigContainers.Runtime.ImplicitStructures;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -18,7 +19,7 @@ namespace BigContainers.Editor.Tests
                 new(-1, -1), // Q3
             };
 
-            var tree = new BigKdTree<Float2Node, Float2Comparer>(testData.AsArray(), new Float2Comparer());
+            var tree = new KdTree<Float2Node, Float2Comparer>(testData.AsArray(), new Float2Comparer());
             tree.BuildTree();
 
             // Q1

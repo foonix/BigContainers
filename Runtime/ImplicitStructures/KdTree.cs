@@ -4,10 +4,10 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
 
-namespace BigContainers.Runtime
+namespace BigContainers.Runtime.ImplicitStructures
 {
     [BurstCompile]
-    public struct BigKdTree<TNode, TComparer>
+    public struct KdTree<TNode, TComparer>
     where TNode : unmanaged, IKdNode
     where TComparer : unmanaged, IKdComparer<TNode>
     {
@@ -20,7 +20,7 @@ namespace BigContainers.Runtime
 
         private static readonly ProfilerMarker traverseMarker = new("BigKdTree.Traverse()");
 
-        public BigKdTree(NativeArray<TNode> nodes, TComparer comparer)
+        public KdTree(NativeArray<TNode> nodes, TComparer comparer)
         {
             this.nodes = nodes;
             this.comparer = comparer;
@@ -50,7 +50,7 @@ namespace BigContainers.Runtime
 
         // Non-parallel tree sorting
         //[BurstCompile]
-        public static void BuildTreeBurst(in BigKdTree<TNode, TComparer> tree)
+        public static void BuildTreeBurst(in KdTree<TNode, TComparer> tree)
         {
             tree.BuildTree();
         }
