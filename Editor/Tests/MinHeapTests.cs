@@ -7,7 +7,7 @@ namespace BigContainers.Editor.Tests
 {
     public static class MinHeapTests
     {
-        private static int[] jennySequence = new int[] { 8, 6, 7, 5, 3, 0, 9 };
+        private static readonly int[] jennySequence = new int[] { 8, 6, 7, 5, 3, 0, 9 };
 
         private static void ValidateMinHeapProperty(NativeArray<int> array, int heapSize)
         {
@@ -71,7 +71,7 @@ namespace BigContainers.Editor.Tests
             {
                 testHeap.Insert(number);
             }
-            
+
             ValidateMinHeapProperty(testHeapContainer, 7);
             var result = testHeap.Exchange(4);
             Assert.AreEqual(0, result);
@@ -163,6 +163,27 @@ namespace BigContainers.Editor.Tests
             ValidateMinHeapProperty(testHeapContainer, 1);
             Assert.AreEqual(9, testHeap.Extract());
             Assert.AreEqual(0, testHeap.CurrentSize);
+        }
+
+        [Test]
+        public static void ReversedListHeapifyExtractIsSorted()
+        {
+            int count = 1000;
+            var testArray = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                testArray[i] = count - i - 1;
+            }
+
+            using NativeArray<int> testHeapContainer = new(testArray, Allocator.Temp);
+            var testHeap = new MinHeap<int>(testHeapContainer, 0, testArray.Length, testArray.Length);
+
+            testHeap.Heapify();
+
+            for (int i = 0; i < count; i++)
+            {
+                Assert.AreEqual(i, testHeap.Extract());
+            }
         }
     }
 }

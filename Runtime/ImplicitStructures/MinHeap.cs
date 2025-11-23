@@ -23,6 +23,12 @@ namespace BigContainers.Runtime.ImplicitStructures
         /// <param name="container">The container that is to be treated as a Minheap.</param>
         public MinHeap(NativeArray<TNode> container) : this(container, 0, container.Length, 0) { }
 
+        public TNode this[int key]
+        {
+            get => heap[key];
+            set => heap[key] = value;
+        }
+
         /// <summary>
         /// Treat a region of an array as a MinHeap.
         /// </summary>
@@ -48,7 +54,6 @@ namespace BigContainers.Runtime.ImplicitStructures
             while (current > 0 && node.CompareTo(heap[parent]) < 0)
             {
                 heap[current] = heap[parent];
-                heap[parent] = node;
 
                 current = parent;
                 parent = BinaryTree.ParentOf(parent);
@@ -129,7 +134,7 @@ namespace BigContainers.Runtime.ImplicitStructures
         public TNode ExchangeAt(int i, TNode node)
         {
             // like Extract() except we have potentially out of order node instead of a gap.
-            TNode extracted = CurrentMin;
+            TNode extracted = heap[i];
 
             heap[i] = node;
             BubbleDown(i);
