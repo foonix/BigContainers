@@ -1,0 +1,205 @@
+using BigContainers.Runtime.Helpers;
+using System.Collections.Generic;
+using Unity.Collections;
+
+namespace BigContainers.Runtime.ImplicitStructures
+{
+
+    public struct Heap<TNode, TComparer>
+        where TNode : unmanaged
+        where TComparer : unmanaged, IComparer<TNode>
+    {
+        NativeArray<TNode> heap;
+        readonly TComparer comparer;
+        // The number of elements in heap[] that are currently used.
+        int currentSize;
+
+        public TNode CurrentMin => heap[0];
+        public readonly int CurrentSize => currentSize;
+
+        public TNode this[int key]
+        {
+            get => heap[key];
+            set => heap[key] = value;
+        }
+
+        /// <summary>
+        /// Treat an entire array as an empty MinHeap with capacity of the array.
+        /// </summary>
+        /// <param name="container">The container that is to be treated as a Minheap.</param>
+        public Heap(NativeArray<TNode> container, TComparer comparer) : this(container, comparer, 0, container.Length, 0) { }
+
+        /// <summary>
+        /// Treat a region of an array as a MinHeap.
+        /// </summary>
+        /// <param name="container">The container that is to be treated as a Minheap.</param>
+        /// <param name="start">The start index of the heap region (inclusive)</param>
+        /// <param name="capacity">How many array elements this heap is allowed to use.</param>
+        /// <param name="initialSize"></param>
+        public Heap(NativeArray<TNode> container, TComparer comparer, int start, int capacity, int initialSize)
+        {
+            heap = container.GetSubArray(start, capacity);
+            currentSize = initialSize;
+            this.comparer = comparer;
+        }
+
+        /// <summary>
+        /// Adds node to the heap, expanding the heap region to the right and clobbering whatever was in it.
+        /// </summary>
+        /// <param name="node"></param>
+        public void Insert(TNode node)
+        {
+            // "bubble up"
+            int current = currentSize++;
+            int parent = BinaryTree.ParentOf(current);
+            while (current > 0 && comparer.Compare(node, heap[parent]) < 0)
+            {
+                heap[current] = heap[parent];
+
+                current = parent;
+                parent = BinaryTree.ParentOf(parent);
+            }
+            heap[current] = node;
+        }
+
+        /// <summary>
+        /// Remove the lowest value (CurrentMin) from the heap, and shrink the heap by 1.
+        /// </summary>
+        /// <returns>Returns CurrentMin</returns>
+        public TNode Extract()
+        {
+            TNode extracted = CurrentMin;
+
+            int gap = 0, newgap;
+            while (true)
+            {
+                int rightChildIdx = BinaryTree.RightChild(gap);
+                if (rightChildIdx < currentSize)
+                {
+                    int leftChildIdx = BinaryTree.LeftChild(gap);
+                    var leftChild = heap[leftChildIdx];
+                    var rightChild = heap[rightChildIdx];
+                    if (comparer.Compare(leftChild, rightChild) < 0)
+                    {
+                        newgap = leftChildIdx;
+                    }
+                    else
+                    {
+                        newgap = rightChildIdx;
+                    }
+                    heap[gap] = heap[newgap];
+                    gap = newgap;
+                }
+                else if (rightChildIdx == currentSize)
+                {
+                    // by coincidence, finished exactly on the last element.
+                    newgap = BinaryTree.LeftChild(gap);
+                    heap[gap] = heap[newgap];
+                    currentSize--;
+                    return extracted;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            int last = --currentSize;
+            int gapParent = BinaryTree.ParentOf(gap);
+            while (gap > 0 && comparer.Compare(heap[last], heap[gapParent]) < 0)
+            {
+                heap[gap] = heap[gapParent];
+                gap = gapParent;
+                gapParent = BinaryTree.ParentOf(gap);
+            }
+            heap[gap] = heap[last];
+
+            return extracted;
+        }
+
+        /// <summary>
+        /// Removes minimum node from the heap, placing the provided value into the heap.
+        /// This is more efficient than calling Extract() then Insert().
+        /// </summary>
+        /// <param name="node">A node to add to the heap.</param>
+        /// <returns>The previous CurrentMin</returns>
+        public TNode Exchange(TNode node) => ExchangeAt(0, node);
+
+        /// <summary>
+        /// Exchange the node at i for the given node, and bubble downward.
+        /// Note that this may invalidate the heap property for nodes above it.
+        /// </summary>
+        /// <param name="i">Node index of the location to perform the exchange operation.</param>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        public TNode ExchangeAt(int i, TNode node)
+        {
+            // like Extract() except we have potentially out of order node instead of a gap.
+            TNode extracted = heap[i];
+
+            heap[i] = node;
+            BubbleDown(i);
+
+            return extracted;
+        }
+
+        /// <summary>
+        /// Run the Heapify algorithm on the array area currently specificed to be part of the heap's CurrentSize.
+        /// </summary>
+        public void Heapify()
+        {
+            // Floyd's heap construction
+            for (int i = BinaryTree.ParentOf(currentSize); i >= 0; i--)
+            {
+                BubbleDown(i);
+            }
+        }
+
+        private void BubbleDown(int i)
+        {
+            int current = i;
+            TNode node = heap[i];
+            while (true)
+            {
+                int leftChild = BinaryTree.LeftChild(current);
+                int rightChild = BinaryTree.RightChild(current);
+
+                if (rightChild < currentSize)
+                {
+                    // existance of righ child implies existance of left child.
+                    int lowerChild = comparer.Compare(heap[leftChild], heap[rightChild]) < 0 ? leftChild : rightChild;
+
+                    if (comparer.Compare(heap[lowerChild], node) < 0)
+                    {
+                        heap[current] = heap[lowerChild];
+                        current = lowerChild;
+                    }
+                    else
+                    {
+                        heap[current] = node;
+                        return;
+                    }
+                }
+                else if (leftChild < currentSize)
+                {
+                    // Corner case where there is a left child, but not a right child.
+                    // Check that one and return.
+                    if (comparer.Compare(heap[leftChild], node) < 0)
+                    {
+                        heap[current] = heap[leftChild];
+                        heap[leftChild] = node;
+                        return;
+                    }
+                    heap[current] = node;
+                    return;
+                }
+                else
+                {
+                    // no children.
+                    heap[current] = node;
+                    return;
+                }
+            }
+        }
+    }
+}

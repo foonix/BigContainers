@@ -5,14 +5,14 @@ using Unity.Collections;
 namespace BigContainers.Runtime.ImplicitStructures
 {
     /// <summary>
-    /// An implicit MinHeap situated inside an existing NativeArray.
+    /// An implicit MaxHeap situated inside an existing NativeArray.
     /// </summary>
-    public struct MinHeap<TNode>
+    public struct MaxHeap<TNode>
         where TNode : unmanaged, IComparable<TNode>
     {
-        Heap<TNode, MinComparer> heap;
+        Heap<TNode, MaxComparer> heap;
 
-        public TNode CurrentMin => heap[0];
+        public TNode CurrentMax => heap[0];
         public readonly int CurrentSize => heap.CurrentSize;
 
         public TNode this[int key]
@@ -21,27 +21,28 @@ namespace BigContainers.Runtime.ImplicitStructures
             set => heap[key] = value;
         }
 
-        private readonly struct MinComparer : IComparer<TNode>
+        private readonly struct MaxComparer : IComparer<TNode>
         {
-            public readonly int Compare(TNode x, TNode y) => x.CompareTo(y);
+            // x and y are deliberately reversed to turn Heap<> into max heap.
+            public readonly int Compare(TNode x, TNode y) => y.CompareTo(x);
         }
 
         /// <summary>
-        /// Treat an entire array as an empty MinHeap with capacity of the array.
+        /// Treat an entire array as an empty MaxHeap with capacity of the array.
         /// </summary>
-        /// <param name="container">The container that is to be treated as a Minheap.</param>
-        public MinHeap(NativeArray<TNode> container) : this(container, 0, container.Length, 0) { }
+        /// <param name="container">The container that is to be treated as a MaxHeap.</param>
+        public MaxHeap(NativeArray<TNode> container) : this(container, 0, container.Length, 0) { }
 
         /// <summary>
-        /// Treat a region of an array as a MinHeap.
+        /// Treat a region of an array as a MaxHeap.
         /// </summary>
-        /// <param name="container">The container that is to be treated as a Minheap.</param>
+        /// <param name="container">The container that is to be treated as a MaxHeap.</param>
         /// <param name="start">The start index of the heap region (inclusive)</param>
         /// <param name="capacity">How many array elements this heap is allowed to use.</param>
         /// <param name="initialSize"></param>
-        public MinHeap(NativeArray<TNode> container, int start, int capacity, int initialSize)
+        public MaxHeap(NativeArray<TNode> container, int start, int capacity, int initialSize)
         {
-            heap = new Heap<TNode, MinComparer>(container, new(), start, capacity, initialSize);
+            heap = new Heap<TNode, MaxComparer>(container, new(), start, capacity, initialSize);
         }
 
         /// <summary>
