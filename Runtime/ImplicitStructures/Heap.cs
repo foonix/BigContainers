@@ -4,7 +4,13 @@ using Unity.Collections;
 
 namespace BigContainers.Runtime.ImplicitStructures
 {
-
+    /// <summary>
+    /// An astract heap with arbitrary comparer.
+    /// The normal IComparer order will result in a min heap.
+    /// If you want a max heap, supply a comparer that returns reversed values.
+    /// </summary>
+    /// <typeparam name="TNode"></typeparam>
+    /// <typeparam name="TComparer"></typeparam>
     public struct Heap<TNode, TComparer>
         where TNode : unmanaged
         where TComparer : unmanaged, IComparer<TNode>
@@ -159,47 +165,47 @@ namespace BigContainers.Runtime.ImplicitStructures
         {
             int current = i;
             TNode node = heap[i];
-            while (true)
+            int limit = BinaryTree.ParentOf(currentSize);
+            while (current < limit)
             {
                 int leftChild = BinaryTree.LeftChild(current);
-                int rightChild = BinaryTree.RightChild(current);
+                int rightChild = leftChild + 1;
 
-                if (rightChild < currentSize)
+                // prefetch grandchildren here?
+
+                var leftVal = heap[leftChild];
+                var rightVal = heap[rightChild];
+
+                if (comparer.Compare(leftVal, node) < 0 && comparer.Compare(leftVal, rightVal) < 0)
                 {
-                    // existance of righ child implies existance of left child.
-                    int lowerChild = comparer.Compare(heap[leftChild], heap[rightChild]) < 0 ? leftChild : rightChild;
-
-                    if (comparer.Compare(heap[lowerChild], node) < 0)
-                    {
-                        heap[current] = heap[lowerChild];
-                        current = lowerChild;
-                    }
-                    else
-                    {
-                        heap[current] = node;
-                        return;
-                    }
+                    heap[current] = leftVal;
+                    current = leftChild;
                 }
-                else if (leftChild < currentSize)
+                else if (comparer.Compare(rightVal, node) < 0)
                 {
-                    // Corner case where there is a left child, but not a right child.
-                    // Check that one and return.
-                    if (comparer.Compare(heap[leftChild], node) < 0)
-                    {
-                        heap[current] = heap[leftChild];
-                        heap[leftChild] = node;
-                        return;
-                    }
-                    heap[current] = node;
-                    return;
+                    heap[current] = rightVal;
+                    current = rightChild;
                 }
                 else
                 {
-                    // no children.
-                    heap[current] = node;
-                    return;
+                    break;
                 }
             }
+
+            // corner case with even sized arrays where the a single node has one (left) child.
+            {
+                int leftChild = BinaryTree.LeftChild(current);
+                if (leftChild == currentSize - 1)
+                {
+                    if (comparer.Compare(heap[leftChild], node) < 0)
+                    {
+                        heap[current] = heap[leftChild];
+                        current = leftChild;
+                    }
+                }
+            }
+
+            heap[current] = node;
         }
     }
 }
