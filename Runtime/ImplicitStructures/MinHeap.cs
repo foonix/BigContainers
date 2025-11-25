@@ -27,21 +27,19 @@ namespace BigContainers.Runtime.ImplicitStructures
         }
 
         /// <summary>
-        /// Treat an entire array as an empty MinHeap with capacity of the array.
+        /// Treat an array as an empty MinHeap with capacity of the array.
         /// </summary>
         /// <param name="container">The container that is to be treated as a Minheap.</param>
-        public MinHeap(NativeArray<TNode> container) : this(container, 0, container.Length, 0) { }
+        public MinHeap(NativeArray<TNode> container) : this(container, 0) { }
 
         /// <summary>
-        /// Treat a region of an array as a MinHeap.
+        /// Treat an array as a MinHeap.
         /// </summary>
         /// <param name="container">The container that is to be treated as a Minheap.</param>
-        /// <param name="start">The start index of the heap region (inclusive)</param>
-        /// <param name="capacity">How many array elements this heap is allowed to use.</param>
         /// <param name="initialSize"></param>
-        public MinHeap(NativeArray<TNode> container, int start, int capacity, int initialSize)
+        public MinHeap(NativeArray<TNode> container, int initialSize)
         {
-            heap = new Heap<TNode, MinComparer>(container, new(), start, capacity, initialSize);
+            heap = new Heap<TNode, MinComparer>(container, new(), initialSize);
         }
 
         /// <summary>

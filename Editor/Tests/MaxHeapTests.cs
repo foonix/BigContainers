@@ -141,7 +141,7 @@ namespace BigContainers.Editor.Tests
         public static void HeapifyThenExtractIsSorted()
         {
             using NativeArray<int> testHeapContainer = new(jennySequence, Allocator.Temp);
-            var testHeap = new MaxHeap<int>(testHeapContainer, 0, jennySequence.Length, jennySequence.Length);
+            var testHeap = new MaxHeap<int>(testHeapContainer, jennySequence.Length);
 
             testHeap.Heapify();
 
@@ -175,7 +175,7 @@ namespace BigContainers.Editor.Tests
             }
 
             using NativeArray<int> testHeapContainer = new(testArray, Allocator.Temp);
-            var testHeap = new MaxHeap<int>(testHeapContainer, 0, testArray.Length, testArray.Length);
+            var testHeap = new MaxHeap<int>(testHeapContainer, testArray.Length);
 
             testHeap.Heapify();
 
