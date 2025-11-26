@@ -32,9 +32,61 @@ namespace BigContainers.Runtime
                 while (j >= 0 && comparer.Compare(array[j], key) > 0)
                 {
                     array[j + 1] = array[j];
-                    j = j - 1;
+                    j--;
                 }
                 array[j + 1] = key;
+            }
+        }
+
+        /// <summary>
+        /// Partition an array on given the pivot value, partially sorting the array.
+        /// </summary>
+        /// <returns>Index where all subsequent elements are greater than the pivot value, and elements up to and including are less than or equal to the pivot value.</returns>
+        public static int HoarePartition<TNode, TComparer>(NativeArray<TNode> array, TComparer comparer, TNode pivot)
+            where TNode : struct
+            where TComparer : IComparer<TNode>
+        {
+            int i = -1, j = array.Length;
+            while (true)
+            {
+                do
+                {
+                    i++;
+                } while (comparer.Compare(array[i], pivot) < 0);
+
+                do
+                {
+                    j--;
+                } while (comparer.Compare(pivot, array[j]) < 0);
+
+                if (i >= j) return j;
+
+                (array[j], array[i]) = (array[i], array[j]);
+            }
+        }
+
+        /// <summary>
+        /// Place the k-th smallest element at element k in the array, with smaller elements to the left and larger to the right.
+        /// </summary>
+        public static void QuickSelect<TNode, TComparer>(NativeArray<TNode> array, TComparer comparer, int k)
+            where TNode : struct
+            where TComparer : IComparer<TNode>
+        {
+            int lo = 0;
+            int hi = array.Length;
+            while (hi - lo > 1)
+            {
+                var slice = array.GetSubArray(lo, hi - lo);
+                TNode pivot = slice[(slice.Length - 1) / 2];
+                int partitionIdx = HoarePartition(slice, comparer, pivot) + lo;
+                if (partitionIdx < k)
+                {
+                    lo = partitionIdx + 1;
+                }
+                if (partitionIdx >= k)
+                {
+                    hi = partitionIdx;
+                }
             }
         }
     }

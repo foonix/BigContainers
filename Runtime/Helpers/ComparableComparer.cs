@@ -8,9 +8,9 @@ namespace BigContainers.Runtime.Helpers
     /// Helper (empty) struct to work around not being able to use Comparer<typeparamref name="T"/>.Default (reference type) in burst.
     /// This compiles completely out in burst code.
     /// </summary>
-    public struct ComparableComparer<T> : IComparer<T>
+    public readonly struct ComparableComparer<T> : IComparer<T>
         where T : IComparable<T>
     {
-        public int Compare(T x, T y) => x.CompareTo(y);
+        public readonly int Compare(T x, T y) => x.CompareTo(y);
     }
 }
