@@ -1,5 +1,5 @@
+using BigContainers.Runtime.Helpers;
 using System;
-using System.Collections.Generic;
 using Unity.Collections;
 
 namespace BigContainers.Runtime.ImplicitStructures
@@ -10,7 +10,7 @@ namespace BigContainers.Runtime.ImplicitStructures
     public struct MinHeap<TNode>
         where TNode : unmanaged, IComparable<TNode>
     {
-        Heap<TNode, MinComparer> heap;
+        Heap<TNode, ComparableComparer<TNode>> heap;
 
         public TNode CurrentMin => heap[0];
         public readonly int CurrentSize => heap.CurrentSize;
@@ -19,11 +19,6 @@ namespace BigContainers.Runtime.ImplicitStructures
         {
             get => heap[key];
             set => heap[key] = value;
-        }
-
-        private readonly struct MinComparer : IComparer<TNode>
-        {
-            public readonly int Compare(TNode x, TNode y) => x.CompareTo(y);
         }
 
         /// <summary>
@@ -39,7 +34,7 @@ namespace BigContainers.Runtime.ImplicitStructures
         /// <param name="initialSize"></param>
         public MinHeap(NativeArray<TNode> container, int initialSize)
         {
-            heap = new Heap<TNode, MinComparer>(container, new(), initialSize);
+            heap = new Heap<TNode, ComparableComparer<TNode>>(container, new ComparableComparer<TNode>(), initialSize);
         }
 
         /// <summary>

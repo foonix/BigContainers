@@ -1,5 +1,5 @@
+using BigContainers.Runtime.Helpers;
 using System;
-using System.Collections.Generic;
 using Unity.Collections;
 
 namespace BigContainers.Runtime.ImplicitStructures
@@ -10,7 +10,7 @@ namespace BigContainers.Runtime.ImplicitStructures
     public struct MaxHeap<TNode>
         where TNode : unmanaged, IComparable<TNode>
     {
-        Heap<TNode, MaxComparer> heap;
+        Heap<TNode, ComparableReversedComparer<TNode>> heap;
 
         public TNode CurrentMax => heap[0];
         public readonly int CurrentSize => heap.CurrentSize;
@@ -19,12 +19,6 @@ namespace BigContainers.Runtime.ImplicitStructures
         {
             get => heap[key];
             set => heap[key] = value;
-        }
-
-        private readonly struct MaxComparer : IComparer<TNode>
-        {
-            // x and y are deliberately reversed to turn Heap<> into max heap.
-            public readonly int Compare(TNode x, TNode y) => y.CompareTo(x);
         }
 
         /// <summary>
@@ -40,7 +34,7 @@ namespace BigContainers.Runtime.ImplicitStructures
         /// <param name="initialSize"></param>
         public MaxHeap(NativeArray<TNode> container, int initialSize)
         {
-            heap = new Heap<TNode, MaxComparer>(container, new(), initialSize);
+            heap = new Heap<TNode, ComparableReversedComparer<TNode>>(container, new ComparableReversedComparer<TNode>(), initialSize);
         }
 
         /// <summary>
