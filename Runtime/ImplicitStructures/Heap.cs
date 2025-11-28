@@ -159,7 +159,11 @@ namespace BigContainers.Runtime.ImplicitStructures
             }
         }
 
-        private void BubbleDown(int i)
+        /// <summary>
+        /// Bubble down node at i.
+        /// </summary>
+        /// <returns>The index that the bubble down process pushed the node to.</returns>
+        public int BubbleDown(int i)
         {
             int current = i;
             TNode node = heap[i];
@@ -198,12 +202,14 @@ namespace BigContainers.Runtime.ImplicitStructures
                     if (comparer.Compare(heap[leftChild], node) < 0)
                     {
                         heap[current] = heap[leftChild];
-                        current = leftChild;
+                        heap[leftChild] = node;
+                        return leftChild;
                     }
                 }
             }
 
             heap[current] = node;
+            return current;
         }
     }
 }
