@@ -173,38 +173,32 @@ namespace BigContainers.Runtime.ImplicitStructures
                 int leftChild = BinaryTree.LeftChild(current);
                 int rightChild = leftChild + 1;
 
-                // prefetch grandchildren here?
-
-                var leftVal = heap[leftChild];
-                var rightVal = heap[rightChild];
-
-                if (comparer.Compare(leftVal, node) < 0 && comparer.Compare(leftVal, rightVal) < 0)
+                int lowerChild = leftChild;
+                if (comparer.Compare(heap[rightChild], heap[leftChild]) < 0)
                 {
-                    heap[current] = leftVal;
-                    current = leftChild;
+                    lowerChild = rightChild;
                 }
-                else if (comparer.Compare(rightVal, node) < 0)
+
+                if (comparer.Compare(heap[lowerChild], node) < 0)
                 {
-                    heap[current] = rightVal;
-                    current = rightChild;
+                    heap[current] = heap[lowerChild];
+                    current = lowerChild;
                 }
                 else
                 {
-                    break;
+                    heap[current] = node;
+                    return current;
                 }
             }
 
             // corner case with even sized arrays where the a single node has one (left) child.
             {
                 int leftChild = BinaryTree.LeftChild(current);
-                if (leftChild == currentSize - 1)
+                if (leftChild == currentSize - 1 && comparer.Compare(heap[leftChild], node) < 0)
                 {
-                    if (comparer.Compare(heap[leftChild], node) < 0)
-                    {
-                        heap[current] = heap[leftChild];
-                        heap[leftChild] = node;
-                        return leftChild;
-                    }
+                    heap[current] = heap[leftChild];
+                    heap[leftChild] = node;
+                    return leftChild;
                 }
             }
 
