@@ -12,26 +12,70 @@ namespace BigContainers.Editor.Tests
         {
             int count = 10;
             int partitionAt = 6;
-            var testArray = new int[count];
-            for (int i = 0; i < count; i++)
-            {
-                testArray[i] = count - i - 1;
-            }
+            using var reversedSorted = TestUtils.CreateReversedSortedFloatArray(count);
 
-            using NativeArray<int> testHeapContainer = new(testArray, Allocator.Temp);
+            Algorithms.QuickSelect(reversedSorted, new ComparableComparer<float>(), partitionAt);
 
-            Algorithms.QuickSelect(testHeapContainer, new ComparableComparer<int>(), partitionAt);
+            Assert.AreEqual(partitionAt, reversedSorted[partitionAt]);
+            TestUtils.VerifyKthSmallestProperty(reversedSorted, partitionAt);
+        }
 
-            Assert.AreEqual(partitionAt, testHeapContainer[partitionAt]);
+        [Test]
+        public static void QuckSelectOnSortedList()
+        {
+            int count = 20;
+            int partitionAt = 6;
+            using var reversedSorted = TestUtils.CreateSortedFloatArray(count);
 
-            for (int i = 0; i < partitionAt; i++)
-            {
-                Assert.LessOrEqual(testHeapContainer[i], partitionAt);
-            }
-            for (int i = partitionAt + 1; i < count - 1; i++)
-            {
-                Assert.Greater(testHeapContainer[i], partitionAt);
-            }
+            Algorithms.QuickSelect(reversedSorted, new ComparableComparer<float>(), partitionAt);
+
+            Assert.AreEqual(partitionAt, reversedSorted[partitionAt]);
+            TestUtils.VerifyKthSmallestProperty(reversedSorted, partitionAt);
+        }
+
+        [Test]
+        public static void QuickSelectHandlesDuplicateValues()
+        {
+            // Hoare partition if not done correctly can result in incorrect behavior
+            // if there are duplicates to the chosen pivot value.
+            int[] testData = new int[] { 5, 3, 5, 3, 5 };
+            using NativeArray<int> test = new(testData, Allocator.Temp);
+
+            Algorithms.QuickSelect(test, new ComparableComparer<int>(), 2);
+
+            Assert.AreEqual(3, test[0]);
+            Assert.AreEqual(3, test[1]);
+            Assert.AreEqual(5, test[2]);
+            Assert.AreEqual(5, test[3]);
+            Assert.AreEqual(5, test[4]);
+        }
+
+        [Test]
+        public static void HeapSelectOnReversedList()
+        {
+            int count = 10;
+            int partitionAt = 6;
+            using var reversedSorted = TestUtils.CreateReversedSortedFloatArray(count);
+
+            Algorithms.HeapSelect(reversedSorted, partitionAt);
+
+            Assert.AreEqual(partitionAt, reversedSorted[partitionAt]);
+
+            TestUtils.VerifyKthSmallestProperty(reversedSorted, partitionAt);
+        }
+
+        [Test]
+        public static void TwinHeapSelectOnReversedList()
+        {
+            int count = 10;
+            int partitionAt = 6;
+            using var reversedSorted = TestUtils.CreateReversedSortedFloatArray(count);
+
+            Algorithms.TwinHeapPartition(reversedSorted, partitionAt);
+
+            Assert.AreEqual(partitionAt, reversedSorted[partitionAt]);
+
+            TestUtils.VerifyKthSmallestProperty(reversedSorted, partitionAt);
         }
     }
 }

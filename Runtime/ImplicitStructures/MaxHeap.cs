@@ -66,6 +66,8 @@ namespace BigContainers.Runtime.ImplicitStructures
         /// <returns></returns>
         public TNode ExchangeAt(int i, TNode node) => heap.ExchangeAt(i, node);
 
+        public int BubbleDown(int i) => heap.BubbleDown(i);
+
         /// <summary>
         /// Run the Heapify algorithm on the array area currently specificed to be part of the heap's CurrentSize.
         /// </summary>
