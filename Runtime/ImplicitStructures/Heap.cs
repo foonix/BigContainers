@@ -19,6 +19,10 @@ namespace BigContainers.Runtime.ImplicitStructures
         readonly TComparer comparer;
         // The number of elements in heap[] that are currently used.
         int currentSize;
+
+        /// <summary>
+        /// The highest node ID guaranteed to have two children.
+        /// </summary>
         int bottomLevel;
 
         public TNode CurrentMin => heap[0];
@@ -183,16 +187,20 @@ namespace BigContainers.Runtime.ImplicitStructures
                 int leftChild = BinaryTree.LeftChild(current);
                 int rightChild = leftChild + 1;
 
-                int lowerChild = leftChild;
-                if (comparer.Compare(heap[rightChild], heap[leftChild]) < 0)
+                // Monty Hall Problem:
+                // If one child is lower, the chance of the other child being lower than it
+                // is less than the chance of the other child being lower than current.
+                // So we try to get better than 50/50 branch prediction that way.
+                if (comparer.Compare(heap[leftChild], node) < 0
+                    && comparer.Compare(heap[leftChild], heap[rightChild]) < 0)
                 {
-                    lowerChild = rightChild;
+                    heap[current] = heap[leftChild];
+                    current = leftChild;
                 }
-
-                if (comparer.Compare(heap[lowerChild], node) < 0)
+                else if (comparer.Compare(heap[rightChild], node) < 0)
                 {
-                    heap[current] = heap[lowerChild];
-                    current = lowerChild;
+                    heap[current] = heap[rightChild];
+                    current = rightChild;
                 }
                 else
                 {
