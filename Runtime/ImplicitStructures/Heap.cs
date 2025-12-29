@@ -19,9 +19,19 @@ namespace BigContainers.Runtime.ImplicitStructures
         readonly TComparer comparer;
         // The number of elements in heap[] that are currently used.
         int currentSize;
+        int bottomLevel;
 
         public TNode CurrentMin => heap[0];
-        public readonly int CurrentSize => currentSize;
+        public int CurrentSize
+        {
+            readonly get => currentSize;
+            set
+            {
+                currentSize = value;
+                bottomLevel = BinaryTree.ParentOf(currentSize);
+            }
+        }
+
 
         public TNode this[int key]
         {
@@ -44,6 +54,7 @@ namespace BigContainers.Runtime.ImplicitStructures
         {
             heap = container;
             currentSize = initialSize;
+            bottomLevel = BinaryTree.ParentOf(initialSize);
             this.comparer = comparer;
         }
 
@@ -54,7 +65,7 @@ namespace BigContainers.Runtime.ImplicitStructures
         public void Insert(TNode node)
         {
             // "bubble up"
-            int current = currentSize++;
+            int current = CurrentSize++;
             int parent = BinaryTree.ParentOf(current);
             while (current > 0 && comparer.Compare(node, heap[parent]) < 0)
             {
@@ -99,7 +110,7 @@ namespace BigContainers.Runtime.ImplicitStructures
                     // by coincidence, finished exactly on the last element.
                     newgap = BinaryTree.LeftChild(gap);
                     heap[gap] = heap[newgap];
-                    currentSize--;
+                    CurrentSize--;
                     return extracted;
                 }
                 else
@@ -108,7 +119,7 @@ namespace BigContainers.Runtime.ImplicitStructures
                 }
             }
 
-            int last = --currentSize;
+            int last = --CurrentSize;
             int gapParent = BinaryTree.ParentOf(gap);
             while (gap > 0 && comparer.Compare(heap[last], heap[gapParent]) < 0)
             {
@@ -167,8 +178,7 @@ namespace BigContainers.Runtime.ImplicitStructures
         {
             int current = i;
             TNode node = heap[i];
-            int limit = BinaryTree.ParentOf(currentSize);
-            while (current < limit)
+            while (current < bottomLevel)
             {
                 int leftChild = BinaryTree.LeftChild(current);
                 int rightChild = leftChild + 1;

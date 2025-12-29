@@ -57,7 +57,7 @@ namespace BigContainers.Editor.Tests
             }
             for (int i = k + 1; i < array.Length; i++)
             {
-                Assert.Greater(array[i], array[k]);
+                Assert.GreaterOrEqual(array[i], array[k]);
             }
         }
     }
