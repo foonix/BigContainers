@@ -8,7 +8,8 @@ namespace BigContainers.Runtime
     {
         /// <summary>
         /// Get a float representation of a given dimension's coordinate.
-        /// This is used for tree searching, and can be approximate.
+        /// This is used for tree searching. It may be rounded to the nearest float,
+        /// but larger approximation errors can cause traversal to miss nodes.
         /// </summary>
         /// <param name="dimension"></param>
         /// <returns></returns>

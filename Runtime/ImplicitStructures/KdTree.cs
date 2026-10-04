@@ -94,13 +94,11 @@ namespace BigContainers.Runtime.ImplicitStructures
                 if (size > 0)
                 {
                     int partition = TaggedHoarePartition(tags, dimension, l, h);
-                    int leftSize = partition - l;
-                    int rightSize = h - partition + 1;
-                    if (leftSize > 1)
+                    if (partition > l)
                     {
                         stack.Add((l, partition));
                     }
-                    if (rightSize > 1)
+                    if (partition + 1 < h)
                     {
                         stack.Add((partition + 1, h));
                     }
@@ -189,6 +187,9 @@ namespace BigContainers.Runtime.ImplicitStructures
         public void Traverse<TQuery>(ref TQuery query) where TQuery : unmanaged, IKdQuery<TNode>
         {
             using var marker = traverseMarker.Auto();
+            if (NumNodes == 0)
+                return;
+
             int curr = 0;
             int prev = -1;
             float maxSearchRadius = query.GetCurrentSearchRadius();
@@ -212,11 +213,16 @@ namespace BigContainers.Runtime.ImplicitStructures
                 // Compute close child and far child:
                 int splitDim = BinaryTree.LevelOf(curr) % comparer.Dimensions;
                 float splitPos = nodes[curr].GetCoordinate(splitDim);
-                float signedDist = query.QueryPoint.GetCoordinate(splitDim) - splitPos;
+                float queryPos = query.QueryPoint.GetCoordinate(splitDim);
+                double signedDist = (double)queryPos - splitPos;
                 int closeSide = (signedDist > 0f) ? 1 : 0;
                 int closeChild = 2 * curr + 1 + closeSide;
                 int farChild = 2 * curr + 2 - closeSide;
-                bool farInRange = math.abs(signedDist) <= maxSearchRadius;
+                // Float coordinates and search radii can round inward, so keep the plane test conservative.
+                double roundingAllowance = ((double)math.abs(queryPos) + math.abs(splitPos) + maxSearchRadius)
+                    * (1.0 / (1 << 23)) + float.Epsilon;
+                double planeDistance = signedDist < 0 ? -signedDist : signedDist;
+                bool farInRange = planeDistance <= (double)maxSearchRadius + roundingAllowance;
 
                 // Compute next node to step to:
                 int next;
